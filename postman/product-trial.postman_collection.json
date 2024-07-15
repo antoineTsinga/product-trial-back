@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "ec66b794-df37-4589-87ea-01c7334242c5",
 		"name": "Product API Tests",
-		"description": "This collection contains tests for the Product Management API, covering CRUD operations and filtering and sorting functionalities.\n\nTest create in the collection\n\n**Get All Products**  \nMethod: GET  \nURL: `{{base_url}}/api/{{api_version}}/products`  \nDescription: Retrieves a paginated list of products without filters.\n\n**Get Products with Filters**  \nMethod: GET  \nURL : `{{base_url}}/api/{{api_version}}/products?name_contains=B&price_equals=72&category_equals=Accessories`  \nDescription: Retrieves a filtered list of products.\n\n**Get Products with Sorting**  \nMethod: GET  \nURL: `{{base_url}}/api/{{api_version}}/products?sort=price,desc`  \nDescription: Retrieves a list of products sorted by price in descending order.\n\n**Get Product by ID**  \nMethod: GET  \nURL: `{{base_url}}/api/{{api_version}}/products/1`  \nDescription: Retrieves a specific product by its ID.\n\n**Create Product**  \nMethod: POST  \nURL: `{{base_url}}/api/{{api_version}}/products`  \nBody :\n\n``` json\n{\n  \"code\": \"PROD001\",\n  \"name\": \"New Product\",\n  \"description\": \"A new product description\",\n  \"image\": \"image_url.jpg\",\n  \"price\": 99.99,\n  \"category\": \"Electronics\",\n  \"quantity\": 50,\n  \"inventoryStatus\": \"INSTOCK\",\n  \"rating\": 4.5\n}\n\n ```\n\nDescription: Creates a new product.\n\n**Update Product (Full Update)**  \nMethod: PUT  \nURL: `{{base_url}}/api/{{api_version}}/products/1`  \nBody: (same structure as for creation, with modified data)  \nDescription: Updates all fields of an existing product.\n\n**Partial Update Product**  \nMethod: PATCH  \nURL: `{{base_url}}/api/{{api_version}}/products/1`  \nBody :\n\n``` json\n{\n  \"price\": 89.99,\n  \"quantity\": 45\n}\n\n ```\n\nDescription: Partially updates an existing product.\n\n**Delete Product**  \nMethod: DELETE  \nURL: `{{base_url}}/api/{{api_version}}/products/1`  \nDescription: Deletes a specific product.\n\n**Delete Multiple Products**  \nMethod: DELETE  \nURL: `{{base_url}}/api/{{api_version}}/products/delete?ids=1,2,3`  \nDescription: Deletes multiple products in a single request.\n\nFor each test we :\n\n1. Verify the response status code.\n2. Check the structure and content of the JSON response.\n3. For creation and update operations, verify that the returned data matches the sent data.\n4. For deletion operations, verify that the product no longer exists after deletion.",
+		"description": "This collection contains tests for the Product Management API, covering CRUD operations and filtering and sorting functionalities.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "16571875"
 	},
@@ -65,7 +65,8 @@
 								"{{api_version}}",
 								"products"
 							]
-						}
+						},
+						"description": "Retrieves a paginated list of products without filters."
 					},
 					"response": []
 				},
@@ -121,7 +122,8 @@
 									"value": "Accessories"
 								}
 							]
-						}
+						},
+						"description": "Retrieves a filtered list of products."
 					},
 					"response": []
 				},
@@ -167,7 +169,8 @@
 									"value": "price,desc"
 								}
 							]
-						}
+						},
+						"description": "Retrieves a list of products sorted by price in descending order."
 					},
 					"response": []
 				},
@@ -220,7 +223,8 @@
 								"products",
 								"5"
 							]
-						}
+						},
+						"description": "Retrieves a specific product by its ID."
 					},
 					"response": []
 				},
@@ -283,7 +287,8 @@
 								"{{api_version}}",
 								"products"
 							]
-						}
+						},
+						"description": "Creates a new product."
 					},
 					"response": []
 				},
@@ -342,7 +347,8 @@
 								"products",
 								"5"
 							]
-						}
+						},
+						"description": "Updates all fields of an existing product."
 					},
 					"response": []
 				},
@@ -405,7 +411,8 @@
 								"products",
 								"5"
 							]
-						}
+						},
+						"description": "Partially updates an existing product."
 					},
 					"response": []
 				},
@@ -449,7 +456,8 @@
 								"products",
 								"1"
 							]
-						}
+						},
+						"description": "Deletes a specific product."
 					},
 					"response": []
 				},
@@ -465,7 +473,7 @@
 									"});\r",
 									"\r",
 									"// Send GET requests to verify the products no longer exist\r",
-									"var deletedIds = [1, 2, 3];  // adjust based on your actual request\r",
+									"var deletedIds = [2, 3, 4];  // adjust based on your actual request\r",
 									"deletedIds.forEach(function(id) {\r",
 									"    pm.sendRequest({\r",
 									"        url: `${pm.variables.get('base_url')}/api/${pm.variables.get('api_version')}/products/${id}`,\r",
@@ -476,6 +484,16 @@
 									"        });\r",
 									"    });\r",
 									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -502,11 +520,59 @@
 									"value": "2,3,4"
 								}
 							]
+						},
+						"description": "Deletes multiple products in a single request."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset database",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains success message\", function () {\r",
+									"    pm.expect(pm.response.text()).to.eql(\"Database has been reset\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/{{api_version}}/products/admin/reset?code={{admin_code}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"{{api_version}}",
+								"products",
+								"admin",
+								"reset"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{admin_code}}"
+								}
+							]
+						},
+						"description": "Admin request to reset database (usefull for testing)"
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "For each test we :\n\n1. Verify the response status code.\n    \n2. Check the structure and content of the JSON response.\n    \n3. For creation and update operations, verify that the returned data matches the sent data.\n    \n4. For deletion operations, verify that the product no longer exists after deletion."
 		},
 		{
 			"name": "Invalid requests",
@@ -546,7 +612,8 @@
 								"products",
 								"999999"
 							]
-						}
+						},
+						"description": "Test for NoSuchElementException (Not Found)"
 					},
 					"response": []
 				},
@@ -590,7 +657,8 @@
 									"value": "0"
 								}
 							]
-						}
+						},
+						"description": "Test for BusinessException (Invalid Page Number)"
 					},
 					"response": []
 				},
@@ -638,7 +706,8 @@
 								"products",
 								"999999"
 							]
-						}
+						},
+						"description": "Test for Invalid Product Update"
 					},
 					"response": []
 				},
@@ -685,7 +754,8 @@
 								"{{api_version}}",
 								"products"
 							]
-						}
+						},
+						"description": "Test for Invalid Product Creation with existing code"
 					},
 					"response": []
 				},
@@ -729,12 +799,59 @@
 									"value": "invalidField,asc"
 								}
 							]
+						},
+						"description": "Test for Invalid Sort Parameter"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset with wrong admin code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Invalid code returns 401\", function () {\r",
+									"        pm.response.to.have.status(401);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains unauthorized message\", function(){\r",
+									"    var responseBody = pm.response.text();\r",
+									"    pm.expect(responseBody).to.include(\"Invalid admin code\");\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/{{api_version}}/products/admin/reset?code=WRONG_CODE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"{{api_version}}",
+								"products",
+								"admin",
+								"reset"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "WRONG_CODE"
+								}
+							]
+						},
+						"description": "Test for wrong admin code"
 					},
 					"response": []
 				}
-			],
-			"description": "**Get Non-existent Product**  \nMethod : GET  \nURL : {{base_url}}/api/{{api_version}}/products/999999\n\nDescription : Test for NoSuchElementException (Not Found)\n\n**Get Products with Invalid Page Number**  \nMethode : GET  \nURL : {{base_url}}/api/{{api_version}}/products?page=0\n\nDescription : Test for BusinessException (Invalid Page Number)\n\n**Update Non-existent Product**  \nMethode : PUT  \nURL : {{base_url}}/api/{{api_version}}/products/999999  \nBody :\n\n```\njsonCopy{\n    \"name\": \"Updated Product\",\n    \"price\": 99.99\n}\n\n ```\n\nDescription : Test for Invalid Product Update\n\n**Create Product with Duplicate Code**  \nMethode : POST  \nURL : {{base_url}}/api/{{api_version}}/products  \nBody :\n\n``` json\njsonCopy{\n    \"code\": \"EXISTING_CODE\",\n    \"name\": \"New Product\",\n    \"price\": 99.99\n}\n\n ```\n\nDescription : Test for Invalid Product Creation (assuming there's a validation for unique product code)\n\n**Get Products with Invalid Sort Parameter**  \nMéthode : GET  \nURL : {{base_url}}/api/{{api_version}}/products?sort=invalidField,asc\n\nDescription : Test for Invalid Sort Parameter"
+			]
 		}
 	],
 	"event": [
@@ -744,6 +861,30 @@
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
+					"const base_url = pm.variables.get('base_url');\r",
+					"const api_version = pm.variables.get('api_version');\r",
+					"const admin_code = pm.variables.get('admin_code');\r",
+					"pm.sendRequest({\r",
+					"    url: pm.variables.get('base_url') + '/actuator/health',\r",
+					"    method: 'GET'\r",
+					"}, function (err, res) {\r",
+					"    if (err || res.code !== 200) {\r",
+					"        console.error(\"Application is not ready. Please start the Spring Boot application.\");\r",
+					"         pm.execution.setNextRequest(null)\r",
+					"        \r",
+					"    }\r",
+					"});\r",
+					"\r",
+					"pm.sendRequest({\r",
+					"    url: `${base_url}/api/${api_version}/products/admin/reset?code=${admin_code}`,\r",
+					"    method: 'POST'\r",
+					"}, function (err, res) {\r",
+					"    if (err || res.code !== 200) {\r",
+					"        console.error(\"Fail to reset product table\");\r",
+					"\r",
+					"          pm.execution.setNextRequest(null)\r",
+					"    }\r",
+					"});\r",
 					""
 				]
 			}
@@ -754,15 +895,7 @@
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
-					"pm.sendRequest({\r",
-					"    url: pm.variables.get('base_url') + '/actuator/health',\r",
-					"    method: 'GET'\r",
-					"}, function (err, res) {\r",
-					"    if (err || res.code !== 200) {\r",
-					"        console.error(\"Application is not ready. Please start the Spring Boot application.\");\r",
-					"        postman.setNextRequest(null); // This will stop the collection run\r",
-					"    }\r",
-					"});"
+					""
 				]
 			}
 		}

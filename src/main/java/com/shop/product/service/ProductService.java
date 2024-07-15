@@ -3,6 +3,7 @@ package com.shop.product.service;
 import com.shop.product.api.dtos.PagingResponse;
 import com.shop.product.api.dtos.ProductDTO;
 import com.shop.product.api.service.IProductService;
+import com.shop.product.configuration.DataLoader;
 import com.shop.product.entities.Product;
 import com.shop.product.mapper.ProductMapper;
 import com.shop.product.repository.ProductRepository;
@@ -26,10 +27,12 @@ import java.util.stream.Collectors;
 public class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final DataLoader dataLoader;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper, DataLoader dataLoader) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.dataLoader = dataLoader;
     }
 
     @Override
@@ -131,6 +134,15 @@ public class ProductService implements IProductService {
             throw new BusinessException("Page size must not be less than 1", HttpStatus.BAD_REQUEST);
         }
         return get(spec, PageRequest.of(page - 1, size, sort));
+    }
+
+    @Override
+    public void resetDatabase() {
+        try {
+            dataLoader.resetDatabase();
+        } catch (Exception e) {
+            throw new BusinessException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private PagingResponse<ProductDTO> get(Specification<ProductDTO> spec, Pageable pageable) {

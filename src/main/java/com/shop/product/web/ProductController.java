@@ -20,6 +20,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.SortDefault;
@@ -37,6 +38,9 @@ import java.util.NoSuchElementException;
 public class ProductController {
     private final IProductService iProductService;
     private static final List<String> VALID_SORT_FIELDS = Arrays.asList("id", "name", "code", "price", "category", "quantity", "rating");
+
+    @Value("${admin-code}")
+    private String adminCode;
 
     public ProductController(IProductService iProductService) {
         this.iProductService = iProductService;
@@ -133,6 +137,17 @@ public class ProductController {
     public ResponseEntity<Void> deleteProducts(@Parameter(description = "list of ids to delete") @RequestParam List<Long> ids){
         iProductService.deleteProducts(ids);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+    @PostMapping("/admin/reset")
+    public ResponseEntity<String> resetDatabase(@RequestParam String code) {
+        if (!adminCode.equals(code)) {
+            throw new BusinessException("Invalid admin code", HttpStatus.UNAUTHORIZED);
+        }
+
+        iProductService.resetDatabase();
+        return new ResponseEntity<>("Database has been reset", HttpStatus.OK);
     }
 
     @ExceptionHandler(NoSuchElementException.class)

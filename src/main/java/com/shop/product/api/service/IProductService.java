@@ -17,4 +17,5 @@ public interface IProductService {
     void deleteProducts(List<Long> ids);
     ProductDTO getProductById(Long id);
     PagingResponse<ProductDTO> getProducts(Specification<ProductDTO> spec,int page, int size, Sort sort);
+    void resetDatabase();
 }
