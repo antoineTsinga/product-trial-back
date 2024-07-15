@@ -6,6 +6,7 @@ Product Trial API is a backend application for managing products in a shop.
 - Java 17
 - Spring Boot 3.3.1
 - PostgreSQL (as database)
+- H2 Database (for local development)
 - MapStruct (for object mapping)
 - Lombok (for reducing boilerplate code)
 - Specification Arg Resolver (for dynamic querying)
@@ -121,4 +122,59 @@ Product Trial API is a backend application for managing products in a shop.
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
 | `ids`      | `integer[]` | **Required**. List of ids to delete |
+
+
+## Installation
+
+Clone the project
+
+```bash
+  git clone https://github.com/antoineTsinga/product-trial-back
+```
+
+Go to the project directory
+
+```bash
+  cd product-trial
+```
+
+> **Warning:** In Local app use H2 database. Have a look in environnement variable and application.properties files to change profile (local, prod, or custom)
+
+### Run Locally
+
+Build the project
+
+```bash
+  mvn clean install
+```
+
+Run the Spring Boot application:
+
+```bash
+  mvn spring-boot:run
+```
+
+### Building and Running with Docker
+
+Build and run the application using Docker:
+
+Build the Docker image
+```bash
+  docker build -t product-trial .
+```
+
+Build the project
+
+```bash
+  docker run -p 8086:8086 product-trial
+
+```
+## Deployment
+
+To deploy the application, package it as a JAR file and deploy it to a server with Java and PostgreSQL installed or Deploy with Docker 
+
+
+## Demo
+
+Incomming
 
