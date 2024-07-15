@@ -117,7 +117,7 @@ public class ProductController {
 
     @Operation(summary = "Update fields of a product")
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductDTO> patchProduct(@Parameter(description = "id of product to be update") @PathVariable Long id, @Valid @RequestBody ProductDTO productDTO){
+    public ResponseEntity<ProductDTO> patchProduct(@Parameter(description = "id of product to be update") @PathVariable Long id, @RequestBody ProductDTO productDTO){
         return new ResponseEntity<>(iProductService.partialUpdateProduct(productDTO, id), HttpStatus.OK);
     }
 
