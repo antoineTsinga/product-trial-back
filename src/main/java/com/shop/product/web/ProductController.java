@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+
+import jakarta.validation.Valid;
 import net.kaczmarzyk.spring.data.jpa.domain.*;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
@@ -26,11 +28,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+
 
 
 @RestController
@@ -109,20 +111,20 @@ public class ProductController {
 
     @Operation(summary = "Update all fields of a product")
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> updateCustomer(@Parameter(description = "id of product to be update") @PathVariable Long id, @RequestBody ProductDTO productDTO){
+    public ResponseEntity<ProductDTO> updateCustomer(@Parameter(description = "id of product to be update") @PathVariable Long id,@Valid @RequestBody ProductDTO productDTO){
         return new ResponseEntity<>(iProductService.updateProduct(productDTO, id), HttpStatus.OK);
     }
 
     @Operation(summary = "Update fields of a product")
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductDTO> patchProduct(@Parameter(description = "id of product to be update") @PathVariable Long id, @RequestBody ProductDTO productDTO){
+    public ResponseEntity<ProductDTO> patchProduct(@Parameter(description = "id of product to be update") @PathVariable Long id, @Valid @RequestBody ProductDTO productDTO){
         return new ResponseEntity<>(iProductService.partialUpdateProduct(productDTO, id), HttpStatus.OK);
     }
 
 
     @Operation(summary = "Create a product")
     @PostMapping("")
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO){
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO){
         return new ResponseEntity<>(iProductService.createProduct(productDTO), HttpStatus.CREATED);
     }
     @Operation(summary = "Delete a products")
@@ -149,17 +151,6 @@ public class ProductController {
         iProductService.resetDatabase();
         return new ResponseEntity<>("Database has been reset", HttpStatus.OK);
     }
-
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(NoSuchElementException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<String> handleResourceBusinessException(BusinessException ex) {
-        return ResponseEntity.status(ex.getStatus()).body(ex.getMessage());
-    }
-
 
 
 }

@@ -113,7 +113,8 @@ public class ProductService implements IProductService {
     public void deleteProducts(List<Long> ids) {
         List<Product> productsToDelete = productRepository.findAllById(ids);
         if (productsToDelete.size() != ids.size()) {
-            throw new BusinessException("Some products to delete were not found", HttpStatus.NOT_FOUND);
+            if(ids.size() > 1) throw new BusinessException("Some products to delete were not found", HttpStatus.NOT_FOUND);
+            else throw new BusinessException("Products to delete not found", HttpStatus.NOT_FOUND);
         }
         productRepository.deleteAllById(ids);
     }
