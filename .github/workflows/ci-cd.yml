@@ -1,0 +1,68 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t spring-backend .
+
+      - name: Run Docker container
+        run: docker run -d -p 8086:8086 --name spring-app spring-backend
+
+      - name: Wait for backend to start
+        run: |
+          timeout=180
+          while ! docker exec spring-app curl -s http://localhost:8086/actuator/health > /dev/null
+          do
+            if [ $timeout -le 0 ]; then
+              echo "Backend failed to start"
+              docker logs spring-app
+              exit 1
+            fi
+            echo "Waiting for backend to start..."
+            sleep 10
+            timeout=$((timeout - 10))
+          done
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Postman Tests
+        run: newman run postman/collection.json -e postman/environment.json
+
+      - name: Display Docker logs in case of failure
+        if: failure()
+        run: docker logs spring-app
+
+#  deploy:
+#    needs: test
+#    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Deploy to Render
+#        env:
+#          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+#        run: |
+#          curl -X POST https://api.render.com/v1/deploys \
+#          -H "Authorization: Bearer $RENDER_API_KEY" \
+#          -H "Content-Type: application/json" \
+#          -d '{
+#            "serviceId": "${{ secrets.RENDER_SERVICE_ID }}",
+#            "ref": "main"
+#          }'
