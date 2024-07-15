@@ -1,9 +1,6 @@
 package com.shop.product.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Getter @Setter @ToString @NoArgsConstructor @AllArgsConstructor @Builder
@@ -12,6 +9,7 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "code", nullable = false, unique = true)
     private String code;
     private String name;
     private String description;

@@ -6,21 +6,16 @@ import com.shop.product.api.dtos.ProductDTO;
 import com.shop.product.api.dtos.ProductPagingResponse;
 import com.shop.product.api.service.IProductService;
 
-import com.shop.product.api.utils.SimpleQueryContext;
+
 import com.shop.product.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.DependentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import net.kaczmarzyk.spring.data.jpa.domain.Equal;
-import net.kaczmarzyk.spring.data.jpa.domain.In;
-import net.kaczmarzyk.spring.data.jpa.domain.StartingWith;
-import net.kaczmarzyk.spring.data.jpa.domain.StartingWithIgnoreCase;
-import net.kaczmarzyk.spring.data.jpa.utils.Converter;
-import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
+
+import net.kaczmarzyk.spring.data.jpa.domain.*;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
@@ -32,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -40,9 +36,17 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/products")
 public class ProductController {
     private final IProductService iProductService;
+    private static final List<String> VALID_SORT_FIELDS = Arrays.asList("id", "name", "code", "price", "category", "quantity", "rating");
 
     public ProductController(IProductService iProductService) {
         this.iProductService = iProductService;
+    }
+    private void validateSortParameter(Sort sort) {
+        sort.stream().forEach(order -> {
+            if (!VALID_SORT_FIELDS.contains(order.getProperty())) {
+                throw new BusinessException("Invalid sort parameter: " + order.getProperty(), HttpStatus.BAD_REQUEST);
+            }
+        });
     }
 
     @Operation(
@@ -72,8 +76,8 @@ public class ProductController {
 
             @ParameterObject
             @And({
-                    @Spec(path = "name", params = "name_startsWith", spec = StartingWithIgnoreCase.class),
-                    @Spec(path = "code", params = "code_startsWith", spec = StartingWithIgnoreCase.class),
+                    @Spec(path = "name", params = "name_contains", spec = LikeIgnoreCase.class),
+                    @Spec(path = "code", params = "code_contains", spec = StartingWithIgnoreCase.class),
                     @Spec(path = "price", params = "price_equals", spec = Equal.class),
                     @Spec(path = "rating", params = "rating_equals", spec = Equal.class),
                     @Spec(path = "quantity", params = "quantity_equals", spec = Equal.class),
@@ -87,13 +91,8 @@ public class ProductController {
             @Parameter(description = "Number of items per page")
             @RequestParam(defaultValue = "20") int size
     ){
-
-        if (page < 1) {
-            throw new BusinessException("Page index must not be less than 1", HttpStatus.NOT_FOUND);
-        }
-
-        PagingResponse<ProductDTO> pagingResponse =  iProductService.getProducts(spec, page - 1, size, sort);
-
+        validateSortParameter(sort);
+        PagingResponse<ProductDTO> pagingResponse =  iProductService.getProducts(spec, page, size, sort);
         return new ResponseEntity<>(pagingResponse, HttpStatus.OK);
     }
 

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Collection;
+
 import java.util.Optional;
 
 
@@ -16,4 +16,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findAll(Specification<ProductDTO> spec, Pageable pageable);
 
     Optional<Product> findByCode(String code);
+
+    boolean existsByCode(String code);
 }
