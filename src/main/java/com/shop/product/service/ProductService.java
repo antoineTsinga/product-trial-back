@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +27,13 @@ public class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final DataLoader dataLoader;
+    private final ImageUploadService imageUploadService;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper, DataLoader dataLoader) {
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper, DataLoader dataLoader, ImageUploadService imageUploadService) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.dataLoader = dataLoader;
+        this.imageUploadService = imageUploadService;
     }
 
     @Override
@@ -116,6 +117,9 @@ public class ProductService implements IProductService {
             if(ids.size() > 1) throw new BusinessException("Some products to delete were not found", HttpStatus.NOT_FOUND);
             else throw new BusinessException("Products to delete not found", HttpStatus.NOT_FOUND);
         }
+        productsToDelete.forEach((product)->{
+            imageUploadService.deleteImageByUrl(product.getImage());
+        });
         productRepository.deleteAllById(ids);
     }
 
@@ -144,6 +148,15 @@ public class ProductService implements IProductService {
         } catch (Exception e) {
             throw new BusinessException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    public ProductDTO updateProductImage(Long productId, String imageUrl) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+        product.setImage(imageUrl);
+        Product updatedProduct = productRepository.save(product);
+        return productMapper.toDto(updatedProduct);
     }
 
     private PagingResponse<ProductDTO> get(Specification<ProductDTO> spec, Pageable pageable) {

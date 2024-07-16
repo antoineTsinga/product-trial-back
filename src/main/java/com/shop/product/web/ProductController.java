@@ -8,6 +8,7 @@ import com.shop.product.api.service.IProductService;
 
 
 import com.shop.product.exception.BusinessException;
+import com.shop.product.service.ImageUploadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,14 +24,19 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -39,13 +45,15 @@ import java.util.*;
 @RequestMapping("/api/v1/products")
 public class ProductController {
     private final IProductService iProductService;
+    private final ImageUploadService imageUploadService;
     private static final List<String> VALID_SORT_FIELDS = Arrays.asList("id", "name", "code", "price", "category", "quantity", "rating");
 
     @Value("${admin-code}")
     private String adminCode;
 
-    public ProductController(IProductService iProductService) {
+    public ProductController(IProductService iProductService, ImageUploadService imageUploadService) {
         this.iProductService = iProductService;
+        this.imageUploadService = imageUploadService;
     }
     private void validateSortParameter(Sort sort) {
         sort.stream().forEach(order -> {
@@ -150,6 +158,27 @@ public class ProductController {
 
         iProductService.resetDatabase();
         return new ResponseEntity<>("Database has been reset", HttpStatus.OK);
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<ProductDTO> uploadProductImage(@RequestParam("id") Long productId,
+                                                         @RequestParam("file") MultipartFile file) {
+        try {
+            String imageUrl = imageUploadService.uploadImage(file);
+            ProductDTO updatedProduct = iProductService.updateProductImage(productId, imageUrl);
+            return ResponseEntity.ok(updatedProduct);
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @Profile("local")
+    @GetMapping("/images/{fileName:.+}")
+    public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
+        Resource file = imageUploadService.loadImageAsResource(fileName);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file);
     }
 
 

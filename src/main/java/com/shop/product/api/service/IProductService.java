@@ -18,4 +18,5 @@ public interface IProductService {
     ProductDTO getProductById(Long id);
     PagingResponse<ProductDTO> getProducts(Specification<ProductDTO> spec,int page, int size, Sort sort);
     void resetDatabase();
+    ProductDTO updateProductImage(Long productId, String imageUrl);
 }
