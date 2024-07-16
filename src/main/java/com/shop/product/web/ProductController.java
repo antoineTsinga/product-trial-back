@@ -24,6 +24,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
@@ -150,8 +151,9 @@ public class ProductController {
     }
 
 
+    @Operation(summary = "Reset data base with admin code")
     @PostMapping("/admin/reset")
-    public ResponseEntity<String> resetDatabase(@RequestParam String code) {
+    public ResponseEntity<String> resetDatabase(@Parameter(description = "Admin secret code set on .env") @RequestParam String code) {
         if (!adminCode.equals(code)) {
             throw new BusinessException("Invalid admin code", HttpStatus.UNAUTHORIZED);
         }
@@ -160,9 +162,10 @@ public class ProductController {
         return new ResponseEntity<>("Database has been reset", HttpStatus.OK);
     }
 
+    @Operation(summary = "Upload image of specific product")
     @PostMapping("/upload-image")
-    public ResponseEntity<ProductDTO> uploadProductImage(@RequestParam("id") Long productId,
-                                                         @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ProductDTO> uploadProductImage(@Parameter(description = "id of product to upload image") @RequestParam("id") Long productId,
+                                                         @Parameter(description = "image file") @RequestParam("file") MultipartFile file) {
         try {
             String imageUrl = imageUploadService.uploadImage(file);
             ProductDTO updatedProduct = iProductService.updateProductImage(productId, imageUrl);
@@ -172,9 +175,11 @@ public class ProductController {
         }
     }
 
-    @Profile("local")
+    @Operation(summary = "Get resource image product",
+            description = "Get resource image product. Only available in local")
+    @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "local")
     @GetMapping("/images/{fileName:.+}")
-    public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
+    public ResponseEntity<Resource> getImage(@Parameter(description = "name of image to get")  @PathVariable String fileName) {
         Resource file = imageUploadService.loadImageAsResource(fileName);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
